@@ -1,0 +1,51 @@
+name: Ticket Shop Api CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# cancel older runs if a new commit is pushed to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read # Least privilege security principle
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Better for reporting tools
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Code Quality (Lint & Prettier)
+        run: |
+          npm run lint
+          npx prettier --check "src/**/*.ts"
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Run Tests with Coverage
+        run: npm run test:cov
+        env:
+          NODE_ENV: test
