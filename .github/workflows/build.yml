@@ -37,6 +37,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: "file:./database.sqlite"
+
       - name: Code Quality (Lint & Prettier)
         run: |
           npm run lint
@@ -49,3 +54,4 @@ jobs:
         run: npm run test:cov
         env:
           NODE_ENV: test
+          DATABASE_URL: "file:./database.test.sqlite"

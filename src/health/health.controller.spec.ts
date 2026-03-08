@@ -1,20 +1,26 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HealthController } from "./health.controller";
-import type {
+import {
     HealthIndicatorFunction,
-    HealthCheckResult
+    HealthCheckResult,
+    PrismaHealthIndicator
 } from "@nestjs/terminus";
 import { HealthCheckService, HttpHealthIndicator } from "@nestjs/terminus";
+import { DatabaseService } from "../database/database.service";
 
 describe("HealthController", () => {
     let controller: HealthController;
     let healthService: HealthCheckService;
     let httpIndicator: HttpHealthIndicator;
+    let prismaIndicator: PrismaHealthIndicator;
 
     beforeEach(async () => {
         const mockResult: HealthCheckResult = {
             status: "ok",
-            details: { "nestjs-docs": { status: "up" } }
+            details: {
+                "nestjs-docs": { status: "up" },
+                database: { status: "up" }
+            }
         };
         const module: TestingModule = await Test.createTestingModule({
             controllers: [HealthController],
@@ -39,12 +45,22 @@ describe("HealthController", () => {
                 {
                     provide: HttpHealthIndicator,
                     useValue: {
+                        pingCheck: jest.fn().mockResolvedValue({
+                            "nestjs-docs": { status: "up" }
+                        })
+                    }
+                },
+                {
+                    provide: PrismaHealthIndicator,
+                    useValue: {
                         pingCheck: jest
                             .fn()
-                            .mockResolvedValue({
-                                "nestjs-docs": { status: "up" }
-                            })
+                            .mockResolvedValue({ database: { status: "up" } })
                     }
+                },
+                {
+                    provide: DatabaseService,
+                    useValue: {}
                 }
             ]
         }).compile();
@@ -52,6 +68,7 @@ describe("HealthController", () => {
         controller = module.get(HealthController);
         healthService = module.get(HealthCheckService);
         httpIndicator = module.get(HttpHealthIndicator);
+        prismaIndicator = module.get(PrismaHealthIndicator);
     });
 
     it("should be defined", () => {
@@ -67,9 +84,14 @@ describe("HealthController", () => {
                 "nestjs-docs",
                 "https://docs.nestjs.com"
             );
+            expect(prismaIndicator.pingCheck).toHaveBeenCalledWith(
+                "database",
+                expect.any(Object)
+            );
 
             expect(result.status).toBe("ok");
             expect(result.details).toHaveProperty("nestjs-docs");
+            expect(result.details).toHaveProperty("database");
         });
     });
 });

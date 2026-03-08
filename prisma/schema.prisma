@@ -1,0 +1,34 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "./generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model categories {
+  id          Int     @id @unique(map: "sqlite_autoindex_categories_1") @default(autoincrement())
+  index       Int?
+  label       String
+  description String?
+}
+
+model products {
+  id                    Int     @id @unique(map: "sqlite_autoindex_products_1") @default(autoincrement())
+  label                 String
+  description           String?
+  price                 Int
+  category_id           Int
+  thumbnail_url         String?
+  visible_public        Int     @default(0)
+  visible_authenticated Int     @default(1)
+}
+
+model users {
+  id            Int    @id @unique(map: "sqlite_autoindex_users_1") @default(autoincrement())
+  name          String
+  email         String @unique
+  password_hash String
+}
