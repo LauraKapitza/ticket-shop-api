@@ -1,22 +1,22 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get } from "@nestjs/common";
 import {
-  HealthCheck,
-  HealthCheckService,
-  HttpHealthIndicator,
-} from '@nestjs/terminus';
+    HealthCheck,
+    HealthCheckService,
+    HttpHealthIndicator
+} from "@nestjs/terminus";
 
-@Controller('health')
+@Controller("health")
 export class HealthController {
-  constructor(
-    private health: HealthCheckService,
-    private http: HttpHealthIndicator,
-  ) {}
+    constructor(
+        private health: HealthCheckService,
+        private http: HttpHealthIndicator
+    ) {}
 
-  @Get()
-  @HealthCheck()
-  check() {
-    return this.health.check([
-      () => this.http.pingCheck('nestjs-docs', 'https://docs.nestjs.com'),
-    ]);
-  }
+    @Get()
+    @HealthCheck()
+    check() {
+        return this.health.check([
+            () => this.http.pingCheck("nestjs-docs", "https://docs.nestjs.com")
+        ]);
+    }
 }
